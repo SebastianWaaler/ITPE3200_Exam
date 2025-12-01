@@ -1,0 +1,12 @@
+@model Question
+<input type="hidden" asp-for="QuizId" />
+<div class="mb-3">
+    <label asp-for="Text" class="form-label"></label>
+    <input asp-for="Text" class="form-control" />
+    <span asp-validation-for="Text" class="text-danger"></span>
+</div>
+<div class="mb-3">
+    <label asp-for="Points" class="form-label"></label>
+    <input asp-for="Points" class="form-control" type="number" />
+    <span asp-validation-for="Points" class="text-danger"></span>
+</div>

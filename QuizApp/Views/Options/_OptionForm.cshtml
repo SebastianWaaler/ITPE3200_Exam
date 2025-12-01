@@ -1,0 +1,11 @@
+@model Option
+<input type="hidden" asp-for="QuestionId" />
+<div class="mb-3">
+    <label asp-for="Text" class="form-label"></label>
+    <input asp-for="Text" class="form-control" />
+    <span asp-validation-for="Text" class="text-danger"></span>
+</div>
+<div class="form-check mb-3">
+    <input asp-for="IsCorrect" class="form-check-input" />
+    <label asp-for="IsCorrect" class="form-check-label"></label>
+</div>

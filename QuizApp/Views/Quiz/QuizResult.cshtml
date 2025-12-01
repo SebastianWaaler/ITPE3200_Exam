@@ -1,0 +1,12 @@
+@model QuizApp.Models.QuizResultViewModel
+
+<h1>Quiz Result</h1>
+
+<h2>@Model.QuizTitle</h2>
+
+<p>
+    <strong>You scored:</strong>
+    @Model.EarnedPoints / @Model.TotalPoints points
+</p>
+
+<a href="/Quiz">Back to Quizzes</a>

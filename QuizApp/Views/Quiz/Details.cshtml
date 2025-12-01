@@ -1,0 +1,53 @@
+
+@model QuizApp.Models.Quiz
+
+<h2>@Model.Title</h2>
+<p>@Model.Description</p>
+
+
+<h3>Questions</h3>
+
+@if (Model.Questions == null || !Model.Questions.Any())
+{
+    <p>No questions added yet.</p>
+    <a class="btn btn-primary"
+       asp-controller="Questions"
+       asp-action="Create"
+       asp-route-quizId="@Model.QuizId">
+        Add First Question
+    </a>
+}
+else
+{
+    <a class="btn btn-success mb-3"
+       asp-controller="Questions"
+       asp-action="Create"
+       asp-route-quizId="@Model.QuizId">
+        Add Question
+    </a>
+
+    <ul class="list-group">
+        @foreach (var q in Model.Questions)
+        {
+            <li class="list-group-item">
+                <strong>@q.Text</strong> (@q.Points points)
+
+                <ul>
+                    @foreach (var opt in q.Options)
+                    {
+                        <li style="@(opt.IsCorrect ? "color:green;font-weight:bold" : "")">
+                            @opt.Text
+                            @if (opt.IsCorrect)
+                            {
+                                <span>✓</span>
+                            }
+                        </li>
+                    }
+                </ul>
+
+                <a asp-controller="Questions" asp-action="Edit" asp-route-id="@q.Id">Edit</a> |
+                <a asp-controller="Questions" asp-action="Delete" asp-route-id="@q.Id">Delete</a>
+            </li>
+        }
+    </ul>
+}

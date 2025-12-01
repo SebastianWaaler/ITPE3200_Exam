@@ -1,0 +1,33 @@
+@model IEnumerable<Quiz>
+@{
+    ViewData["Title"] = "Quizzes";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Quizzes</h2>
+    <a class="btn btn-primary" asp-action="Create">New Quiz</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th style="width:240px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var q in Model)
+    {
+        <tr>
+            <td>@q.Title</td>
+            <td>@q.Description</td>
+            <td class="text-end">
+                <a class="btn btn-sm btn-secondary" asp-action="Details" asp-route-id="@q.QuizId">Details</a>
+                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@q.QuizId">Edit</a>
+                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@q.QuizId">Delete</a>
+                <a class="btn btn-sm btn-take" asp-action="Take" asp-route-id="@q.QuizId">Take Quiz</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

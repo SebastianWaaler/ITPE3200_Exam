@@ -1,0 +1,53 @@
+@model QuizApp.Models.Question
+
+@{
+    ViewData["Title"] = "Delete Question";
+}
+
+<h2>Delete Question</h2>
+<p class="text-muted">
+    Are you sure you want to delete this question
+    from <strong>@Model.Quiz?.Title</strong>?
+</p>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Text</dt>
+      <dd class="col-sm-9">@Model.Text</dd>
+
+      <dt class="col-sm-3">Points</dt>
+      <dd class="col-sm-9">@Model.Points</dd>
+
+      <dt class="col-sm-3">Options</dt>
+      <dd class="col-sm-9">@Model.Options?.Count</dd>
+    </dl>
+
+    @* Optional: show actual option texts *@
+    @if (Model.Options != null && Model.Options.Any())
+    {
+        <ul class="mt-2">
+        @foreach (var opt in Model.Options)
+        {
+            <li style="@(opt.IsCorrect ? "font-weight:bold;color:green" : "")">
+                @opt.Text @(opt.IsCorrect ? "(correct)" : "")
+            </li>
+        }
+        </ul>
+    }
+  </div>
+</div>
+
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="QuizId" />
+
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-controller="Quiz"
+       asp-action="Details"
+       asp-route-id="@Model.QuizId"
+       class="btn btn-outline-secondary">
+        Cancel
+    </a>
+</form>

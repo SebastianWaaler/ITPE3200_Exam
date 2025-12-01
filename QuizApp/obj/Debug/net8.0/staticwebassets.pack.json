@@ -1,0 +1,25 @@
+{
+  "Files": [
+    {
+      "Id": "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/obj/Debug/net8.0/scopedcss/projectbundle/QuizApp.bundle.scp.css",
+      "PackagePath": "staticwebassets/QuizApp.bundle.scp.css"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.QuizApp.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.build.QuizApp.props",
+      "PackagePath": "build\\QuizApp.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.QuizApp.props",
+      "PackagePath": "buildMultiTargeting\\QuizApp.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.QuizApp.props",
+      "PackagePath": "buildTransitive\\QuizApp.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

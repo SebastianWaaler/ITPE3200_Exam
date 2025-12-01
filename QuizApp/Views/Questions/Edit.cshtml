@@ -1,0 +1,95 @@
+@model QuizApp.Models.Question
+
+<h2>Edit Question — @(Model.Quiz?.Title ?? "Quiz")</h2>
+
+<form asp-action="Edit" method="post" novalidate>
+    @Html.AntiForgeryToken()
+
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="QuizId" type="hidden" />
+
+    <div class="mb-3">
+        <label asp-for="Text" class="form-label"></label>
+        <input asp-for="Text" class="form-control" />
+        <span asp-validation-for="Text" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Points" class="form-label"></label>
+        <input asp-for="Points" type="number" class="form-control" />
+        <span asp-validation-for="Points" class="text-danger"></span>
+    </div>
+
+    <hr />
+    <h4>Answer Options</h4>
+
+    <div id="options">
+        @for (int i = 0; i < Model.Options.Count; i++)
+        {
+            <div class="d-flex align-items-center mb-2 option-row">
+                <input name="Options[@i].Text"
+                       value="@Model.Options[i].Text"
+                       class="form-control me-2" />
+
+                <input type="radio"
+                       name="CorrectIndex"
+                       value="@i"
+                       @(Model.Options[i].IsCorrect ? "checked" : "") />
+
+                <button type="button" class="btn btn-danger btn-sm ms-2 removeOption">X</button>
+            </div>
+        }
+    </div>
+
+    <button type="button" id="addOption" class="btn btn-secondary mt-2">Add Option</button>
+
+    <br /><br />
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    
+
+    <a asp-controller="Quiz"
+       asp-action="Details"
+       asp-route-id="@Model.QuizId"
+       class="btn btn-outline-secondary">
+        Cancel
+    </a>
+</form>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        function renumberOptions() {
+            const rows = document.querySelectorAll("#options .option-row");
+            rows.forEach((row, i) => {
+                const text = row.querySelector('input.form-control');
+                const radio = row.querySelector('input[type="radio"]');
+
+                text.name = `Options[${i}].Text`;
+                radio.name = "CorrectIndex";
+                radio.value = i;
+            });
+        }
+
+        document.getElementById("addOption").onclick = function () {
+            const container = document.getElementById("options");
+            const row = document.createElement("div");
+            row.classList.add("d-flex", "align-items-center", "mb-2", "option-row");
+            row.innerHTML = `
+                <input class="form-control me-2" placeholder="Option text" />
+                <input type="radio" name="CorrectIndex" />
+                <button type="button" class="btn btn-danger btn-sm ms-2 removeOption">X</button>
+            `;
+            container.appendChild(row);
+            renumberOptions();
+        };
+
+        document.addEventListener("click", function (e) {
+            if (e.target.classList.contains("removeOption")) {
+                e.target.closest(".option-row").remove();
+                renumberOptions();
+            }
+        });
+    </script>
+}
