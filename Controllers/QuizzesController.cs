@@ -1,17 +1,21 @@
-using Microsoft.AspNetCore.Mvc;                               // Brings in MVC attributes and base classes like Controller
-using Microsoft.EntityFrameworkCore;                          // For DbUpdateConcurrencyException
-using QuizApp.Models;                                         // Gives access to your Quiz, Question, Option models
-using System.Threading.Tasks;                                 // For Task / async support
+using System;                                                  // Exception, etc.
 using System.Linq;
-using Microsoft.Extensions.Logging;                           // For ILogger<T>
-using QuizApp.Data.Repositories.Interfaces;                        // For IQuizRepository
+using System.Threading.Tasks;                                  // Task / async
+using Microsoft.AspNetCore.Authorization;                      // [Authorize], [AllowAnonymous]
+using Microsoft.AspNetCore.Mvc;                                // MVC base classes / attributes
+using Microsoft.EntityFrameworkCore;                           // For DbUpdateConcurrencyException
+using Microsoft.Extensions.Logging;                            // ILogger<T>
+using QuizApp.Data.Repositories.Interfaces;                    // IQuizRepository
+using QuizApp.Models;                                          // Quiz, Question, Option models
 
 namespace QuizApp.Controllers
 {
+    // Require login by default for this controller
+    [Authorize]
     public class QuizController : Controller
     {
-        private readonly IQuizRepository _quizzes;            // Repository instead of DbContext
-        private readonly ILogger<QuizController> _logger;      // Logger for this controller
+        private readonly IQuizRepository _quizzes;             // Repository instead of DbContext
+        private readonly ILogger<QuizController> _logger;       // Logger for this controller
 
         public QuizController(IQuizRepository quizzes, ILogger<QuizController> logger)
         {
@@ -19,13 +23,14 @@ namespace QuizApp.Controllers
             _logger = logger;
         }
 
-        // GET Quizzes
-        public async Task<IActionResult> Index()                // Action method that returns a view listing all quizzes
+        // Everyone (even not logged in) can see list of quizzes
+        [AllowAnonymous]
+        public async Task<IActionResult> Index()
         {
             try
             {
-                var quizzes = await _quizzes.GetAllAsync();    // via repository
-                return View(quizzes);                          // Pass the list to the Index.cshtml view
+                var quizzes = await _quizzes.GetAllAsync();
+                return View(quizzes);
             }
             catch (Exception ex)
             {
@@ -34,9 +39,11 @@ namespace QuizApp.Controllers
             }
         }
 
+        // Everyone can see details
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null!)
+            if (id == null)
             {
                 _logger.LogWarning("Details called with null id.");
                 return NotFound();
@@ -44,7 +51,7 @@ namespace QuizApp.Controllers
 
             try
             {
-                var quiz = await _quizzes.GetByIdAsync(id.Value); // repository returns quiz with questions + options
+                var quiz = await _quizzes.GetByIdAsync(id.Value); // quiz with questions + options
 
                 if (quiz == null)
                 {
@@ -52,7 +59,7 @@ namespace QuizApp.Controllers
                     return NotFound();
                 }
 
-                return View(quiz);                             // Render Details.cshtml with the quiz model
+                return View(quiz);
             }
             catch (Exception ex)
             {
@@ -61,22 +68,24 @@ namespace QuizApp.Controllers
             }
         }
 
-        // GET: /Quizzes/Create
-        public IActionResult Create()                         // Shows the empty create form
+        // 🔒 Admin only: create quiz (GET)
+        [Authorize(Roles = "Admin")]
+        public IActionResult Create()
         {
-            return View();                                    // Returns Create.cshtml (strongly-typed to Quiz)
+            return View();
         }
 
-        // POST: /Quizzes/Create/
-        [HttpPost]                                            // This action handles form POST requests
+        // 🔒 Admin only: create quiz (POST)
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Title, Description")] Quiz quiz) // The [Bind] limits which properties are bound from the form
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([Bind("Title, Description")] Quiz quiz)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    await _quizzes.AddAsync(quiz);            // via repository
+                    await _quizzes.AddAsync(quiz);
 
                     _logger.LogInformation("Quiz {QuizId} created.", quiz.QuizId);
 
@@ -92,7 +101,8 @@ namespace QuizApp.Controllers
             }
         }
 
-        // GET: /Quizzes/Edit/
+        // 🔒 Admin only: edit quiz (GET)
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -103,7 +113,7 @@ namespace QuizApp.Controllers
 
             try
             {
-                var quiz = await _quizzes.GetByIdAsync(id.Value); // get via repository
+                var quiz = await _quizzes.GetByIdAsync(id.Value);
                 if (quiz == null)
                 {
                     _logger.LogWarning("Quiz {QuizId} not found in Edit (GET).", id);
@@ -119,23 +129,24 @@ namespace QuizApp.Controllers
             }
         }
 
-        // POST: /Quizzes/Edit/5
-        [HttpPost]                                            // Handles POST for edit
-        [ValidateAntiForgeryToken]                            // Protects against CSRF
-        public async Task<IActionResult> Edit(int id, [Bind("QuizId,Title,Description")] Quiz quiz) // We bind key + editable fields (not Questions list)
+        // 🔒 Admin only: edit quiz (POST)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, [Bind("QuizId,Title,Description")] Quiz quiz)
         {
-            if (id != quiz.QuizId)                            // Route id must match form’s key value
+            if (id != quiz.QuizId)
             {
                 _logger.LogWarning("Edit (POST) called with mismatched id. Route id: {RouteId}, Model id: {ModelId}", id, quiz.QuizId);
                 return NotFound();
             }
 
-            if (!ModelState.IsValid)                          // If validation failed, redisplay form
+            if (!ModelState.IsValid)
                 return View(quiz);
 
             try
             {
-                await _quizzes.UpdateAsync(quiz);             // via repository
+                await _quizzes.UpdateAsync(quiz);
 
                 _logger.LogInformation("Quiz {QuizId} updated.", quiz.QuizId);
             }
@@ -161,7 +172,8 @@ namespace QuizApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: /Quiz/Delete/5
+        // 🔒 Admin only: delete quiz (GET)
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -172,7 +184,7 @@ namespace QuizApp.Controllers
 
             try
             {
-                var quiz = await _quizzes.GetByIdAsync(id.Value); // via repository
+                var quiz = await _quizzes.GetByIdAsync(id.Value);
 
                 if (quiz == null)
                 {
@@ -180,7 +192,7 @@ namespace QuizApp.Controllers
                     return NotFound();
                 }
 
-                return View(quiz);  // Views/Quiz/Delete.cshtml
+                return View(quiz);
             }
             catch (Exception ex)
             {
@@ -189,13 +201,15 @@ namespace QuizApp.Controllers
             }
         }
 
+        // 🔒 Admin only: delete quiz (POST)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
             {
-                var quiz = await _quizzes.GetByIdAsync(id);   // include children via repo
+                var quiz = await _quizzes.GetByIdAsync(id);
 
                 if (quiz == null)
                 {
@@ -203,7 +217,7 @@ namespace QuizApp.Controllers
                     return NotFound();
                 }
 
-                await _quizzes.DeleteAsync(id);               // via repository
+                await _quizzes.DeleteAsync(id);
 
                 _logger.LogInformation("Quiz {QuizId} deleted.", id);
 
@@ -216,11 +230,13 @@ namespace QuizApp.Controllers
             }
         }
 
+        // 🔐 Login required to take quiz
+        [Authorize]
         public async Task<IActionResult> Take(int id)
         {
             try
             {
-                var quiz = await _quizzes.GetByIdAsync(id);   // repo: includes questions + options
+                var quiz = await _quizzes.GetByIdAsync(id);
 
                 if (quiz == null)
                 {
@@ -237,12 +253,13 @@ namespace QuizApp.Controllers
             }
         }
 
+        // 🔐 Login required to submit answers
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Submit(int QuizId)
         {
             try
             {
-                // Load quiz including questions and options via repository
                 var quiz = await _quizzes.GetByIdAsync(QuizId);
 
                 if (quiz == null)
@@ -258,10 +275,8 @@ namespace QuizApp.Controllers
                 {
                     totalPoints += question.Points;
 
-                    // Name of radio button group: question_QUESTIONID
                     string formKey = $"question_{question.Id}";
 
-                    // Did the user answer this question?
                     if (!Request.Form.ContainsKey(formKey))
                         continue;
 
@@ -276,7 +291,6 @@ namespace QuizApp.Controllers
                     }
                 }
 
-                // Pass results to the view
                 var result = new QuizResultViewModel
                 {
                     QuizTitle = quiz.Title,

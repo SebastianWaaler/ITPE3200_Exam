@@ -1,0 +1,177 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.Tests/QuizApp.Tests.csproj": {}
+  },
+  "projects": {
+    "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.csproj",
+        "projectName": "QuizApp",
+        "projectPath": "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.csproj",
+        "packagesPath": "/Users/sebastianwaaler/.nuget/packages/",
+        "outputPath": "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/sebastianwaaler/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.413/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.Tests/QuizApp.Tests.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.Tests/QuizApp.Tests.csproj",
+        "projectName": "QuizApp.Tests",
+        "projectPath": "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.Tests/QuizApp.Tests.csproj",
+        "packagesPath": "/Users/sebastianwaaler/.nuget/packages/",
+        "outputPath": "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.Tests/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/sebastianwaaler/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.csproj": {
+                "projectPath": "/Users/sebastianwaaler/Desktop/OsloMet/ITPE3200 Webapplikasjoner/QuizApp/QuizApp.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore.InMemory": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[17.8.0, )"
+            },
+            "coverlet.collector": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "xunit": {
+              "target": "Package",
+              "version": "[2.5.0, )"
+            },
+            "xunit.runner.visualstudio": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.5.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.413/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

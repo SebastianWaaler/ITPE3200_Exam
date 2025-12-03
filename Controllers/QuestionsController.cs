@@ -2,12 +2,15 @@ using Microsoft.AspNetCore.Mvc;                                   // MVC base cl
 using QuizApp.Models;                                             // Question, Quiz, Option
 using System.Threading.Tasks;                                     // Task/async
 using System.Linq;
-using System.IO.Compression;
+using System.Collections.Generic;                                 // List<>
 using Microsoft.Extensions.Logging;                               // ILogger
-using QuizApp.Data.Repositories.Interfaces;                            // IQuestionRepository, IQuizRepository
+using QuizApp.Data.Repositories.Interfaces;                       // IQuestionRepository, IQuizRepository
+using Microsoft.AspNetCore.Authorization;                         // [Authorize]
 
 namespace QuizApp.Controllers
 {
+    // ADMIN ONLY: Only Admins can manage questions
+    [Authorize(Roles = "Admin")]
     public class QuestionsController : Controller
     {
         private readonly IQuestionRepository _questions;          // Repository for Question
@@ -24,7 +27,8 @@ namespace QuizApp.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Details(int? id)          // Show a single question (with options)
+        // GET: /Questions/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
@@ -42,7 +46,7 @@ namespace QuizApp.Controllers
                     return NotFound();
                 }
 
-                return View(question);                              // Render Details.cshtml
+                return View(question);
             }
             catch (Exception ex)
             {
@@ -51,6 +55,7 @@ namespace QuizApp.Controllers
             }
         }
 
+        // GET: /Questions/Create?quizId=5
         [HttpGet]
         public async Task<IActionResult> Create(int quizId)
         {
@@ -69,7 +74,7 @@ namespace QuizApp.Controllers
                 return View(new Question
                 {
                     QuizId = quizId,
-                    Points = 1    // default points
+                    Points = 1 // default points
                 });
             }
             catch (Exception ex)
@@ -79,7 +84,7 @@ namespace QuizApp.Controllers
             }
         }
 
-
+        // POST: /Questions/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Question question, int? CorrectIndex)
@@ -153,7 +158,7 @@ namespace QuizApp.Controllers
             }
         }
 
-
+        // GET: /Questions/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -181,10 +186,11 @@ namespace QuizApp.Controllers
             }
         }
 
+        // POST: /Questions/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Text,Points,QuizId")] Question question)
-        {                                                           // Bind key + editable fields
+        {
             if (id != question.Id)
             {
                 _logger.LogWarning("Edit (POST) called with mismatched id. Route id: {RouteId}, Model id: {ModelId}", id, question.Id);
@@ -216,7 +222,7 @@ namespace QuizApp.Controllers
             }
         }
 
-        // GET: /Questions/Delete/
+        // GET: /Questions/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -244,7 +250,7 @@ namespace QuizApp.Controllers
             }
         }
 
-        // POST: /Questions/Delete/
+        // POST: /Questions/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -265,7 +271,6 @@ namespace QuizApp.Controllers
 
                 _logger.LogInformation("Question {QuestionId} deleted for Quiz {QuizId}.", id, quizId);
 
-                // Back to that quiz’s details
                 return RedirectToAction(nameof(QuizController.Details), "Quiz", new { id = quizId });
             }
             catch (Exception ex)

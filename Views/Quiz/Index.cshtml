@@ -10,7 +10,10 @@
     <h2>Quizzes</h2>
     
     @* Button to navigate to the Create Quiz page *@
-    <a class="btn btn-primary" asp-action="Create">New Quiz</a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a class="btn btn-primary" asp-action="Create">New Quiz</a>
+    }
 </div>
 
 @* Table to display the list of quizzes *@
@@ -30,32 +33,36 @@
             <td>@q.Description</td>     @* Display quiz description *@
             <td class="text-end action-buttons">  @* RIGHT ALIGN + allow CSS spacing *@
                 
-                @* Button to view quiz details *@
-                <a class="btn btn-sm btn-secondary" 
-                   asp-action="Details" 
-                   asp-route-id="@q.QuizId">
-                   Details
-                </a>
+                @* Admin-only buttons: details, edit, delete *@
+                @if (User.IsInRole("Admin"))
+                {
+                    @* Button to view quiz details *@
+                    <a class="btn btn-sm btn-secondary" 
+                       asp-action="Details" 
+                       asp-route-id="@q.QuizId">
+                        Details
+                    </a>
 
-                @* Button to edit the quiz *@
-                <a class="btn btn-sm btn-warning" 
-                   asp-action="Edit" 
-                   asp-route-id="@q.QuizId">
-                   Edit
-                </a>
+                    @* Button to edit the quiz *@
+                    <a class="btn btn-sm btn-warning" 
+                       asp-action="Edit" 
+                       asp-route-id="@q.QuizId">
+                        Edit
+                    </a>
 
-                @* Button to delete the quiz *@
-                <a class="btn btn-sm btn-danger" 
-                   asp-action="Delete" 
-                   asp-route-id="@q.QuizId">
-                   Delete
-                </a>
+                    @* Button to delete the quiz *@
+                    <a class="btn btn-sm btn-danger" 
+                       asp-action="Delete" 
+                       asp-route-id="@q.QuizId">
+                        Delete
+                    </a>
+                }
 
-                @* Button to take the quiz as a participant *@
+                @* Button to take the quiz as a participant (visible to everyone) *@
                 <a class="btn btn-sm btn-primary" 
                    asp-action="Take" 
                    asp-route-id="@q.QuizId">
-                   Take Quiz
+                    Take Quiz
                 </a>
             </td>
         </tr>
@@ -65,7 +72,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-     <script>
+    <script>
         // Simple client-side error handler for this page
         window.addEventListener("error", function (event) {
             console.error("Client error on Quiz page:", event.error || event.message);

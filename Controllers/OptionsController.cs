@@ -1,11 +1,16 @@
-using Microsoft.AspNetCore.Mvc;                                   // MVC base/types
-using Microsoft.EntityFrameworkCore;                              // For DbUpdateConcurrencyException
-using QuizApp.Models;                                             // Option, Question
-using Microsoft.Extensions.Logging;                               // ILogger
-using QuizApp.Data.Repositories.Interfaces;                            // IOptionRepository, IQuestionRepository
+using System;                                                   // Exception, etc.
+using System.Threading.Tasks;                                   // Task / async
+using Microsoft.AspNetCore.Authorization;                       // [Authorize]
+using Microsoft.AspNetCore.Mvc;                                 // MVC base/types
+using Microsoft.EntityFrameworkCore;                            // DbUpdateConcurrencyException
+using Microsoft.Extensions.Logging;                             // ILogger
+using QuizApp.Data.Repositories.Interfaces;                     // IOptionRepository, IQuestionRepository
+using QuizApp.Models;                                           // Option, Question
 
 namespace QuizApp.Controllers
 {
+    // ADMIN ONLY: Only Admins can manage options
+    [Authorize(Roles = "Admin")]
     public class OptionsController : Controller
     {
         private readonly IOptionRepository _options;              // Option repository
@@ -22,11 +27,12 @@ namespace QuizApp.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> ByQuestion(int questionId) // List options for a question
+        // GET: /Options/ByQuestion/5
+        public async Task<IActionResult> ByQuestion(int questionId)
         {
             try
             {
-                // Load parent question (with Quiz, Options) via repository
+                // Load parent question via repository
                 var question = await _questions.GetByIdAsync(questionId);
 
                 if (question == null)
@@ -35,11 +41,11 @@ namespace QuizApp.Controllers
                     return NotFound();
                 }
 
-                // Load options list via repository (even though question already has Options, this shows repo usage clearly)
+                // Load options list via repository
                 var options = await _options.GetByQuestionIdAsync(questionId);
 
-                ViewBag.Question = question;                            // Pass parent to view (title/breadcrumbs)
-                return View(options);                                   // Render ByQuestion.cshtml
+                ViewBag.Question = question;
+                return View(options);                                   // ByQuestion.cshtml
             }
             catch (Exception ex)
             {
@@ -48,7 +54,8 @@ namespace QuizApp.Controllers
             }
         }
 
-        public async Task<IActionResult> Create(int questionId)     // Show create form for an option under a question
+        // GET: /Options/Create?questionId=5
+        public async Task<IActionResult> Create(int questionId)
         {
             try
             {
@@ -60,8 +67,8 @@ namespace QuizApp.Controllers
                     return NotFound();
                 }
 
-                ViewBag.Question = question;                             // For displaying context in the view
-                return View(new Option { QuestionId = questionId });     // Pre-fill FK for binding
+                ViewBag.Question = question;
+                return View(new Option { QuestionId = questionId });
             }
             catch (Exception ex)
             {
@@ -70,13 +77,14 @@ namespace QuizApp.Controllers
             }
         }
 
+        // POST: /Options/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Text,IsCorrect,QuestionId")] Option option)
-        {                                                            // Bind editable fields + FK
+        {
             try
             {
-                var questionExists = await _questions.ExistsAsync(option.QuestionId); // Validate FK
+                var questionExists = await _questions.ExistsAsync(option.QuestionId);
 
                 if (!questionExists)
                 {
@@ -84,17 +92,17 @@ namespace QuizApp.Controllers
                     ModelState.AddModelError("", "Selected question does not exist.");
                 }
 
-                if (!ModelState.IsValid)                                 // Validation errors? redisplay
+                if (!ModelState.IsValid)
                 {
                     ViewBag.Question = await _questions.GetByIdAsync(option.QuestionId);
                     return View(option);
                 }
 
-                await _options.AddAsync(option);                         // INSERT via repository
+                await _options.AddAsync(option);
 
                 _logger.LogInformation("Option {OptionId} created for Question {QuestionId}.", option.Id, option.QuestionId);
 
-                return RedirectToAction(nameof(ByQuestion), new { questionId = option.QuestionId }); // Back to options list
+                return RedirectToAction(nameof(ByQuestion), new { questionId = option.QuestionId });
             }
             catch (Exception ex)
             {
@@ -103,7 +111,8 @@ namespace QuizApp.Controllers
             }
         }
 
-        public async Task<IActionResult> Edit(int? id)               // Show edit form
+        // GET: /Options/Edit/5
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
@@ -121,7 +130,7 @@ namespace QuizApp.Controllers
                     return NotFound();
                 }
 
-                return View(option);                                 // Render Edit.cshtml
+                return View(option);
             }
             catch (Exception ex)
             {
@@ -130,10 +139,11 @@ namespace QuizApp.Controllers
             }
         }
 
+        // POST: /Options/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Text,IsCorrect,QuestionId")] Option option)
-        {                                                            // Bind key + editable fields
+        {
             if (id != option.Id)
             {
                 _logger.LogWarning("Edit (POST) called with mismatched id. Route id: {RouteId}, Model id: {ModelId}", id, option.Id);
@@ -151,23 +161,23 @@ namespace QuizApp.Controllers
                 if (!ModelState.IsValid)
                     return View(option);
 
-                await _options.UpdateAsync(option);                  // UPDATE via repository
+                await _options.UpdateAsync(option);
 
                 _logger.LogInformation("Option {OptionId} updated for Question {QuestionId}.", option.Id, option.QuestionId);
 
-                return RedirectToAction(nameof(ByQuestion), new { questionId = option.QuestionId }); // Back to options
+                return RedirectToAction(nameof(ByQuestion), new { questionId = option.QuestionId });
             }
             catch (DbUpdateConcurrencyException ex)
             {
                 if (!await _options.ExistsAsync(option.Id))
                 {
                     _logger.LogWarning(ex, "Concurrency error: Option {OptionId} no longer exists.", option.Id);
-                    return NotFound();                               // Deleted concurrently
+                    return NotFound();
                 }
                 else
                 {
                     _logger.LogError(ex, "Concurrency error updating Option {OptionId}.", option.Id);
-                    throw;                                           // Let the global handler deal with it
+                    throw;
                 }
             }
             catch (Exception ex)
@@ -177,7 +187,8 @@ namespace QuizApp.Controllers
             }
         }
 
-        public async Task<IActionResult> Delete(int? id)             // Confirm delete
+        // GET: /Options/Delete/5
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
@@ -195,7 +206,7 @@ namespace QuizApp.Controllers
                     return NotFound();
                 }
 
-                return View(option);                                  // Render Delete.cshtml
+                return View(option);
             }
             catch (Exception ex)
             {
@@ -204,13 +215,14 @@ namespace QuizApp.Controllers
             }
         }
 
+        // POST: /Options/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
             {
-                var option = await _options.GetByIdAsync(id);        // load via repo
+                var option = await _options.GetByIdAsync(id);
 
                 if (option == null)
                 {
@@ -218,13 +230,13 @@ namespace QuizApp.Controllers
                     return NotFound();
                 }
 
-                var questionId = option.QuestionId;                  // Save FK for redirect
+                var questionId = option.QuestionId;
 
-                await _options.DeleteAsync(id);                      // DELETE via repository
+                await _options.DeleteAsync(id);
 
                 _logger.LogInformation("Option {OptionId} deleted for Question {QuestionId}.", id, questionId);
 
-                return RedirectToAction(nameof(ByQuestion), new { questionId }); // Back to options list
+                return RedirectToAction(nameof(ByQuestion), new { questionId });
             }
             catch (Exception ex)
             {

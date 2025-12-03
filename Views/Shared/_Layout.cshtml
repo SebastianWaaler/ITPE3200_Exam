@@ -1,31 +1,63 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using QuizApp.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - QuizApp</title>
 
-    <!-- Bootstrap -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
-    <!-- Your custom clean styles -->
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
+
 <body class="bg-light">
-    <header class="border-bottom mb-4 bg-white">
-        <div class="container d-flex align-items-center justify-content-between py-3">
-            <a class="navbar-brand h3 text-decoration-none mb-0" asp-controller="Quiz" asp-action="Index">
-                QuizApp
-            </a>
+<header class="border-bottom mb-4 bg-white">
+    <div class="container d-flex align-items-center justify-content-between py-3">
+
+        <a class="navbar-brand h3 text-decoration-none mb-0" asp-controller="Quiz" asp-action="Index">
+            QuizApp
+        </a>
+
+        <div>
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <span class="me-3 text-muted">
+                    Hello, @UserManager.GetUserName(User)!
+                </span>
+
+                <form asp-area="Identity"
+                      asp-page="/Account/Logout"
+                      method="post"
+                      class="d-inline">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        Logout
+                    </button>
+                </form>
+            }
+            else
+            {
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary btn-sm me-2">
+                    Login
+                </a>
+                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary btn-sm">
+                    Register
+                </a>
+            }
         </div>
-    </header>
+    </div>
+</header>
 
-    <main role="main" class="container mb-5">
-        @RenderBody()
-    </main>
+<main role="main" class="container mb-5">
+    @RenderBody()
+</main>
 
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    @RenderSection("Scripts", required: false)
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+@RenderSection("Scripts", required: false)
 
-    
 </body>
 </html>
