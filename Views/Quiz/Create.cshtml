@@ -5,36 +5,54 @@
 
 <h2 class="mb-4">Create Quiz</h2>
 
-<form asp-action="Create" method="post" class="card p-4 shadow-sm">
+<div id="quiz-create-app">
+    <form asp-action="Create" method="post" class="card p-4 shadow-sm">
 
-    <div class="mb-3">
-        <label asp-for="Title" class="form-label"></label>
-        <input asp-for="Title" class="form-control" />
-        <span asp-validation-for="Title" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title"
+                   class="form-control"
+                   v-model="title" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description"
+                      class="form-control"
+                      rows="3"
+                      v-model="description"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
 
-    <div class="d-flex gap-2">
-        <button class="btn btn-primary">Save</button>
-        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-    </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary">Save</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        </div>
 
-</form>
+    </form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        // Simple client-side error handler for this page
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    // Initialize from server model (for redisplay after validation error)
+                    title: '@(Model?.Title ?? "")',
+                    description: '@(Model?.Description ?? "")'
+                };
+            }
+        }).mount('#quiz-create-app');
+
+        // client-side error handler for this page
         window.addEventListener("error", function (event) {
             console.error("Client error on Create Quiz page:", event.error || event.message);
             alert("Something went wrong on this page. Please try again.");
         });
     </script>
 }
-

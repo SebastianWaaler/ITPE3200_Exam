@@ -1,51 +1,62 @@
-@{
-    ViewData["Title"] = "Edit (marker)";      @* Initial title (later overwritten) *@
-}
-
-@model QuizApp.Models.Quiz                   
-@* The view receives a Quiz model to edit *@
+@model QuizApp.Models.Quiz
 
 @{
-    ViewData["Title"] = "Edit Quiz";          @* Actual page title used by layout *@
+    ViewData["Title"] = "Edit Quiz";
 }
 
 <h2>Edit Quiz</h2>
 
-<form asp-action="Edit" method="post" class="mt-3">   @* Form posts to Quizzes/Edit *@
-    @Html.AntiForgeryToken()                          @* Security token to prevent CSRF attacks *@
+<div id="quiz-edit-app">
+    <form asp-action="Edit" method="post" class="mt-3">
+        @Html.AntiForgeryToken()
 
-    @* Hidden field to send the Quiz ID to the server *@
-    <input type="hidden" asp-for="QuizId" />
+        <!-- Hidden ID field-->
+        <input type="hidden" asp-for="QuizId" />
 
-    @* Quiz title field *@
-    <div class="mb-3">
-        <label asp-for="Title" class="form-label"></label>      @* Generates label *@
-        <input asp-for="Title" class="form-control" />          @* Textbox for quiz title *@
-        <span asp-validation-for="Title" class="text-danger"></span>  @* Validation errors *@
-    </div>
+        <!-- Quiz title -->
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title"
+                   class="form-control"
+                   v-model="title" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
 
-    @* Quiz description textarea *@
-    <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>   @* Label *@
-        <textarea asp-for="Description" class="form-control"></textarea> @* Multi-line input *@
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
+        <!-- Quiz description -->
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description"
+                      class="form-control"
+                      v-model="description"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
 
-    @* Submit button section *@
-    <button type="submit" class="btn btn-primary">Save</button>     @* Submit form *@
-    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a> @* Return to list *@
-</form>
+        <!-- Buttons -->
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+</div>
 
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")   @* Enables client-side validation *@
     <partial name="_ValidationScriptsPartial" />
 
-     <script>
-        // Simple client-side error handler for this page
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    // Initialize Vue with values coming from the server Model
+                    title: '@(Model?.Title?.Replace("'", "\\'") ?? "")',
+                    description: '@(Model?.Description?.Replace("'", "\\'") ?? "")'
+                };
+            }
+        }).mount("#quiz-edit-app");
+
+        // client-side error logger
         window.addEventListener("error", function (event) {
             console.error("Client error on Edit Quiz page:", event.error || event.message);
-            alert("Something went wrong on this page. Please try again.");
+            alert("Something went wrong. Please try again.");
         });
     </script>
 }
-

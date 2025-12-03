@@ -1,69 +1,107 @@
 @model QuizApp.Models.Quiz     
 @* The view receives a Quiz model containing questions and options *@
 
-<div class="mb-4">
-    <h1 class="mb-1">@Model.Title</h1>          @* Display the quiz title *@
-    <p class="text-muted">@Model.Description</p>      @* Display the quiz description *@
-</div>
+<div id="take-quiz-app">
+    <div class="mb-4" v-if="quiz">
+        <h1 class="mb-1">{{ quiz.title }}</h1>          @* Display the quiz title *@
+        <p class="text-muted">{{ quiz.description }}</p> @* Display the quiz description *@
+    </div>
 
-@* This area will be populated by the client-side API call (quizTake.js) *@
-<div id="quiz-api-info"
-     data-quiz-id="@Model.QuizId"
-     class="text-muted mb-3">
-    <!-- Loaded via API: quiz details will appear here -->
-</div>
+    <p v-if="loading">Loading quiz...</p>
+    <p v-if="error" class="text-danger">{{ error }}</p>
 
-@* Form posts answers to the Submit action *@
-<form method="post" asp-action="Submit" class="card shadow-sm p-4">
+    @* Form posts answers to the Submit action *@
+    <form v-if="!loading && quiz && quiz.questions && quiz.questions.length"
+          method="post" asp-action="Submit" class="card shadow-sm p-4">
 
-    @* Pass the QuizId to the server on submit *@
-    <input type="hidden" name="QuizId" value="@Model.QuizId" />
+        @* Pass the QuizId to the server on submit *@
+        <input type="hidden" name="QuizId" :value="quiz.quizId" />
 
-    @* Loop through each question in the quiz *@
-    @foreach (var question in Model.Questions)
-    {
-        <div class="mb-4 p-3 border rounded bg-light">
-            <strong class="d-block mb-2">@question.Text</strong>   @* Display the question text *@
+        @* Loop through each question in the quiz *@
+        <div v-for="question in quiz.questions"
+             :key="question.id"
+             class="mb-4 p-3 border rounded bg-light">
+            
+            <strong class="d-block mb-2">
+                {{ question.text }}
+            </strong>   @* Display the question text *@
 
             @* Display each option as a radio button *@
-            @foreach (var option in question.Options)
-            {
-                <div class="form-check mb-1">
-                    <label class="form-check-label">
-                        @* 
-                           Radio button group is named using "question_<id>"
-                           so each question allows exactly one selected answer.
-                        *@
-                        <input type="radio" 
-                               class="form-check-input"
-                               name="question_@question.Id" 
-                               value="@option.Id" />
+            <div class="form-check mb-1"
+                 v-for="option in question.options"
+                 :key="option.id">
+                <label class="form-check-label">
+                    @* 
+                       Radio button group is named using "question_<id>"
+                       so each question allows exactly one selected answer.
+                    *@
+                    <input type="radio" 
+                           class="form-check-input"
+                           :name="'question_' + question.id"
+                           :value="option.id" />
 
-                        @* Show option text *@
-                        @option.Text
-                    </label>
-                </div>
-            }
+                    @* Show option text *@
+                    {{ option.text }}
+                </label>
+            </div>
         </div>
 
         <hr />   @* Visual separator between questions *@
-    }
 
-    @* Submit answers *@
-    <button type="submit" class="btn btn-primary mt-3">Submit Quiz</button>
-</form>
+        @* Submit answers *@
+        <button type="submit" class="btn btn-primary mt-3">Submit Quiz</button>
+    </form>
+
+    <p v-if="!loading && quiz && (!quiz.questions || !quiz.questions.length)">
+        This quiz has no questions yet.
+    </p>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        // Simple client-side error handler for this page
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    quizId: @Model.QuizId,   // server passes ID to Vue
+                    quiz: null,
+                    loading: true,
+                    error: null
+                };
+            },
+            async mounted() {
+                try {
+                    const response = await fetch(`/api/QuizApi/${this.quizId}`);
+                    if (!response.ok) {
+                        if (response.status === 401 || response.status === 403) {
+                            this.error = "You must be logged in to take this quiz.";
+                        } else if (response.status === 404) {
+                            this.error = "Quiz not found.";
+                        } else {
+                            this.error = "Failed to load quiz.";
+                        }
+                        return;
+                    }
+
+                    this.quiz = await response.json();
+                } catch (err) {
+                    console.error(err);
+                    this.error = "Could not load quiz. Please try again.";
+                } finally {
+                    this.loading = false;
+                }
+            }
+        }).mount('#take-quiz-app');
+
+        // client-side error handler for this page
         window.addEventListener("error", function (event) {
             console.error("Client error on Take Quiz page:", event.error || event.message);
             alert("Something went wrong on this page. Please try again.");
         });
     </script>
 
-    @* Client-side API layer usage: quizTake.js imports getQuiz from api.js *@
-    <script type="module" src="~/js/quizTake.js"></script>
+    
 }

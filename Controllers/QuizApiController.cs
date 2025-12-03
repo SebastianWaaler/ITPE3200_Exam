@@ -1,11 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QuizApp.Data.Repositories.Interfaces;   // adjust to your actual namespace
 using Microsoft.Extensions.Logging;
+using QuizApp.Data.Repositories.Interfaces;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace QuizApp.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/[controller]")]   // => /api/QuizApi
     public class QuizApiController : ControllerBase
     {
         private readonly IQuizRepository _quizzes;
@@ -17,8 +21,36 @@ namespace QuizApp.Controllers
             _logger = logger;
         }
 
-        // GET /api/quizapi/5
+        // GET /api/QuizApi
+        // List all quizzes (for the Index page)
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                var quizzes = await _quizzes.GetAllAsync();
+
+                var dto = quizzes.Select(quiz => new
+                {
+                    quiz.QuizId,
+                    quiz.Title,
+                    quiz.Description
+                });
+
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in QuizApiController.GetAll()");
+                return StatusCode(500, "Server error");
+            }
+        }
+
+        // GET /api/QuizApi/5
+        // Single quiz with questions + options (for Take page)
         [HttpGet("{id}")]
+        [Authorize] // must be logged in to load quiz via API
         public async Task<IActionResult> GetQuiz(int id)
         {
             try
@@ -28,7 +60,7 @@ namespace QuizApp.Controllers
                 if (quiz == null)
                     return NotFound();
 
-                // Project to a JSON-friendly DTO to avoid circular refs
+                // JSON-friendly projection
                 var dto = new
                 {
                     quiz.QuizId,

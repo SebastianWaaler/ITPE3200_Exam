@@ -3,77 +3,107 @@
 
 @{
     ViewData["Title"] = "Quizzes";   @* Sets the page title for layout and browser tab *@
+    var isAdmin = User.IsInRole("Admin");   @* Used to pass admin flag into Vue *@
 }
 
 @* Header with title and "New Quiz" button aligned side-by-side *@
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Quizzes</h2>
+    <h2>Quizzes (Vue)</h2>
     
     @* Button to navigate to the Create Quiz page *@
-    @if (User.IsInRole("Admin"))
+    @if (isAdmin)
     {
         <a class="btn btn-primary" asp-action="Create">New Quiz</a>
     }
 </div>
 
-@* Table to display the list of quizzes *@
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Title</th>          @* Column for quiz title *@
-            <th>Description</th>    @* Column for quiz description *@
-            <th style="width:240px;"></th>  @* Column for action buttons (Edit/Delete/etc.) *@
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var q in Model)   @* Loop through each quiz in the list *@
-    {
-        <tr>
-            <td>@q.Title</td>           @* Display quiz title *@
-            <td>@q.Description</td>     @* Display quiz description *@
+@* Vue root: this whole block is controlled by Vue *@
+<div id="quiz-index-app">
+    <p v-if="loading">Loading quizzes...</p>
+    <p v-if="error" class="text-danger">{{ error }}</p>
+
+    @* Table to display the list of quizzes *@
+    <table v-if="!loading && quizzes.length" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>          @* Column for quiz title *@
+                <th>Description</th>    @* Column for quiz description *@
+                <th style="width:240px;"></th>  @* Column for action buttons (Edit/Delete/etc.) *@
+            </tr>
+        </thead>
+        <tbody>
+        <tr v-for="q in quizzes" :key="q.QuizId">
+            <td>{{ q.Title }}</td>           @* Display quiz title *@
+            <td>{{ q.Description }}</td>     @* Display quiz description *@
             <td class="text-end action-buttons">  @* RIGHT ALIGN + allow CSS spacing *@
                 
                 @* Admin-only buttons: details, edit, delete *@
-                @if (User.IsInRole("Admin"))
-                {
+                <template v-if="isAdmin">
                     @* Button to view quiz details *@
                     <a class="btn btn-sm btn-secondary" 
-                       asp-action="Details" 
-                       asp-route-id="@q.QuizId">
+                       :href="'/Quiz/Details/' + q.QuizId">
                         Details
                     </a>
 
                     @* Button to edit the quiz *@
                     <a class="btn btn-sm btn-warning" 
-                       asp-action="Edit" 
-                       asp-route-id="@q.QuizId">
+                       :href="'/Quiz/Edit/' + q.QuizId">
                         Edit
                     </a>
 
                     @* Button to delete the quiz *@
                     <a class="btn btn-sm btn-danger" 
-                       asp-action="Delete" 
-                       asp-route-id="@q.QuizId">
+                       :href="'/Quiz/Delete/' + q.QuizId">
                         Delete
                     </a>
-                }
+                </template>
 
                 @* Button to take the quiz as a participant (visible to everyone) *@
                 <a class="btn btn-sm btn-primary" 
-                   asp-action="Take" 
-                   asp-route-id="@q.QuizId">
+                   :href="'/Quiz/Take/' + q.QuizId">
                     Take Quiz
                 </a>
             </td>
         </tr>
-    }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+
+    <p v-if="!loading && !quizzes.length">No quizzes found.</p>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
     <script>
-        // Simple client-side error handler for this page
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    quizzes: [],
+                    loading: true,
+                    error: null,
+                    // Razor emits true/false, ToLower() makes it valid JS literal
+                    isAdmin: @isAdmin.ToString().ToLower()
+                };
+            },
+            async mounted() {
+                try {
+                    const response = await fetch('/api/QuizApi');
+                    if (!response.ok) {
+                        throw new Error('Failed to load quizzes');
+                    }
+                    this.quizzes = await response.json();
+                } catch (err) {
+                    console.error(err);
+                    this.error = 'Could not load quizzes. Please try again.';
+                } finally {
+                    this.loading = false;
+                }
+            }
+        }).mount('#quiz-index-app');
+
+        // client-side error handler for this page
         window.addEventListener("error", function (event) {
             console.error("Client error on Quiz page:", event.error || event.message);
             alert("Something went wrong on this page. Please try again.");

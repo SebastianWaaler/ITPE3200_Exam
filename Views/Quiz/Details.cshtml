@@ -1,76 +1,101 @@
 @model QuizApp.Models.Quiz      
-@* The view receives a Quiz model to display its details *@
+@using System.Text.Json
 
-<h2>@Model.Title</h2>           @* Display quiz title *@
-<p>@Model.Description</p>       @* Display quiz description *@
+@{
+    ViewData["Title"] = "Quiz Details";
 
-
-<h3>Questions</h3>
-
-@* If the quiz has no questions, show a message and a button to add the first question *@
-@if (Model.Questions == null || !Model.Questions.Any())
-{
-    <p>No questions added yet.</p>
-
-    @* Button navigates to the Create Question page *@
-    <a class="btn btn-primary"
-       asp-controller="Questions"
-       asp-action="Create"
-       asp-route-quizId="@Model.QuizId">
-        Add First Question
-    </a>
-}
-else
-{
-    @* Button to add another question when questions exist *@
-    <a class="btn btn-success mb-3"
-       asp-controller="Questions"
-       asp-action="Create"
-       asp-route-quizId="@Model.QuizId">
-        Add Question
-    </a>
-
-    @* List of existing questions *@
-    <ul class="list-group">
-        @foreach (var q in Model.Questions)
+    // Project server model to a JS-friendly anonymous object and serialize to JSON
+    var questionsJson = JsonSerializer.Serialize(
+        Model.Questions.Select(q => new
         {
-            <li class="list-group-item">
-                
-                @* Show the question text and its point value *@
-                <strong>@q.Text</strong> (@q.Points points)
+            id = q.Id,
+            text = q.Text,
+            points = q.Points,
+            options = q.Options.Select(o => new
+            {
+                id = o.Id,
+                text = o.Text,
+                isCorrect = o.IsCorrect
+            })
+        })
+    );
+}
 
-                @* Display all answer options for this question *@
+<div id="quiz-details-app">
+
+    <h2>@Model.Title</h2>
+    <p>@Model.Description</p>
+
+    <h3>Questions</h3>
+
+    <!-- If no questions -->
+    <div v-if="questions.length === 0">
+        <p>No questions added yet.</p>
+
+        <a class="btn btn-primary"
+           asp-controller="Questions"
+           asp-action="Create"
+           :asp-route-quizId="quizId">
+            Add First Question
+        </a>
+    </div>
+
+    <!-- If there are questions -->
+    <div v-else>
+        <a class="btn btn-success mb-3"
+           asp-controller="Questions"
+           asp-action="Create"
+           :asp-route-quizId="quizId">
+            Add Question
+        </a>
+
+        <ul class="list-group">
+            <li class="list-group-item" v-for="q in questions" :key="q.id">
+
+                <strong>{{ q.text }}</strong> ({{ q.points }} points)
+
                 <ul>
-                    @foreach (var opt in q.Options)
-                    {
-                        <li style="@(opt.IsCorrect ? "color:green;font-weight:bold" : "")">
-                            @opt.Text
+                    <li v-for="opt in q.options" :key="opt.id"
+                        :style="opt.isCorrect ? 'color:green;font-weight:bold' : ''">
 
-                            @* If this option is correct, show a checkmark *@
-                            @if (opt.IsCorrect)
-                            {
-                                <span>✓</span>
-                            }
-                        </li>
-                    }
+                        {{ opt.text }}
+                        <span v-if="opt.isCorrect">✓</span>
+                    </li>
                 </ul>
 
-                @* Links to edit or delete the question *@
-                <a asp-controller="Questions" asp-action="Edit" asp-route-id="@q.Id">Edit</a> |
-                <a asp-controller="Questions" asp-action="Delete" asp-route-id="@q.Id">Delete</a>
+                <a asp-controller="Questions"
+                   asp-action="Edit"
+                   :asp-route-id="q.id">Edit</a>
+
+                |
+
+                <a asp-controller="Questions"
+                   asp-action="Delete"
+                   :asp-route-id="q.id">Delete</a>
             </li>
-        }
-    </ul>
-}
+        </ul>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
-     <script>
-        // Simple client-side error handler for this page
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    quizId: @Model.QuizId,
+                    questions: @Html.Raw(questionsJson)
+                };
+            }
+        }).mount("#quiz-details-app");
+
+        // client-side error logger
         window.addEventListener("error", function (event) {
             console.error("Client error on Quiz Details page:", event.error || event.message);
-            alert("Something went wrong on this page. Please try again.");
+            alert("Something went wrong. Please try again.");
         });
     </script>
 }
